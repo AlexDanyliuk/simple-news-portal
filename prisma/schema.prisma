@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int             @id @default(autoincrement())
+  name          String
+  email         String          @unique
+  password      String
+  role          Role            @default(USER)
+  avatar        String?         // опціонально
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+
+  news          News[]
+  comments      Comment[]
+  favorites     Favorite[]
+  subscriptions Subscription[]
+  notifications Notification[]
+}
+
+model Topic {
+  id             Int             @id @default(autoincrement())
+  name           String          @unique
+  description    String?
+  news           News[]
+  subscriptions  Subscription[]
+}
+
+model News {
+  id          Int           @id @default(autoincrement())
+  title       String
+  content     String
+  status      NewsStatus    @default(DRAFT)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  authorId    Int
+  topicId     Int
+
+  author      User          @relation(fields: [authorId], references: [id])
+  topic       Topic         @relation(fields: [topicId], references: [id])
+  comments    Comment[]
+  favorites   Favorite[]
+  notifications Notification[]
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  authorId  Int
+  newsId    Int
+
+  author    User     @relation(fields: [authorId], references: [id])
+  news      News     @relation(fields: [newsId], references: [id])
+}
+
+model Favorite {
+  id      Int  @id @default(autoincrement())
+  userId  Int
+  newsId  Int
+
+  user    User @relation(fields: [userId], references: [id])
+  news    News @relation(fields: [newsId], references: [id])
+}
+
+model Subscription {
+  id       Int   @id @default(autoincrement())
+  userId   Int
+  topicId  Int
+
+  user     User  @relation(fields: [userId], references: [id])
+  topic    Topic @relation(fields: [topicId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    Int
+  newsId    Int
+
+  user      User     @relation(fields: [userId], references: [id])
+  news      News     @relation(fields: [newsId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum NewsStatus {
+  DRAFT
+  PUBLISHED
+}
