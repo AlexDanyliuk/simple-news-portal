@@ -2,12 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NewsStatus } from '@prisma/client';
 import { ForbiddenException } from '@nestjs/common';
+import { ObserverService } from '../observer/observer.service';  
 
 
 
 @Injectable()
 export class NewsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService,   private observer: ObserverService,
+) {}
 
   async getAll(role: string) {
     const isAdmin = role === 'ADMIN';
@@ -18,6 +20,8 @@ export class NewsService {
         author: {
           select: { email: true },
         },
+          topic: { select: { name: true } }
+
       },
     });
 
@@ -29,6 +33,7 @@ export class NewsService {
       createdAt: n.createdAt,
       updatedAt: n.updatedAt,
       topicId: n.topicId,
+      category: n.topic?.name,
       author: n.author?.email,
     }));
   }
@@ -40,6 +45,8 @@ export class NewsService {
       where: { id },
       include: {
         author: { select: { email: true } },
+        topic: { select: { name: true } }
+
       },
     });
 
@@ -57,6 +64,7 @@ export class NewsService {
       createdAt: news.createdAt,
       updatedAt: news.updatedAt,
       topicId: news.topicId,
+      category: news.topic?.name,
       author: news.author?.email,
     };
   }
@@ -73,19 +81,26 @@ export class NewsService {
   }
 
   async update(id: number, data: any) {
-    const exists = await this.prisma.news.findUnique({ where: { id } });
-    if (!exists) throw new NotFoundException(`News with ID ${id} not found`);
+  const oldNews = await this.prisma.news.findUnique({ where: { id } });
+  if (!oldNews) throw new NotFoundException(`News with ID ${id} not found`);
 
-    return this.prisma.news.update({
-      where: { id },
-      data: {
-        title: data.title,
-        content: data.content,
-        status: data.status as any,
-        topicId: data.topicId,
-      },
-    });
+  const updatedNews = await this.prisma.news.update({
+    where: { id },
+    data: {
+      title: data.title,
+      content: data.content,
+      status: data.status as any,
+      topicId: data.topicId,
+    },
+  });
+
+  if (oldNews.status === 'DRAFT' && updatedNews.status === 'PUBLISHED') {
+    this.observer.notify('news_published', updatedNews);
   }
+
+  return updatedNews;
+}
+
 
   async delete(id: number) {
     const exists = await this.prisma.news.findUnique({ where: { id } });

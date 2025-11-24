@@ -6,6 +6,9 @@ import { NewsModule } from './news/news.module';
 import { AuthModule } from './auth/auth.module';
 import { CommentsModule } from './comments/comments.module';
 import { FavoritesModule } from './favorites/favorites.module';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { NotificationsModule } from './notifications/notifications.module';
+
 
 
 @Module({
@@ -18,6 +21,8 @@ import { FavoritesModule } from './favorites/favorites.module';
     AuthModule,
     CommentsModule,
     FavoritesModule,
+    SubscriptionsModule,
+    NotificationsModule
   ],
   providers: [PrismaService],
 })
