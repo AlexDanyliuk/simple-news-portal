@@ -1,9 +1,17 @@
 // src/users/users.controller.ts
 
 import { Controller, Get, Post, Body,Patch, UseGuards, Req, Param } from '@nestjs/common';
+import { Role } from '@prisma/client';
+import { Roles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UpdateProfileDto } from '../dto/update-profile.dto';
+import { ForbiddenException } from '@nestjs/common';
+
+
+
+
 
 
 
@@ -11,6 +19,8 @@ import { UpdateProfileDto } from '../dto/update-profile.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+@UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @Get()
   async getAll() {
     return this.usersService.getAllUsers();
@@ -45,6 +55,20 @@ export class UsersController {
     return this.usersService.updateMe(req.user.userId, dto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Patch(':id')
+  async updateUserRole(
+    @Param('id') id: string,
+    @Body() body: { role: Role }, 
+    @Req() req
+  ) {
+  if (req.user.userId === Number(id)) {
+    throw new ForbiddenException('You cannot change your own role');
+  }
+
+  return this.usersService.updateRole(Number(id), body.role);
+}
 
 
 }

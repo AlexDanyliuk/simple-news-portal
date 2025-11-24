@@ -1,6 +1,8 @@
 // src/users/users.service.ts
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Role } from '@prisma/client';
+
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from '../dto/update-profile.dto';
 
@@ -84,6 +86,29 @@ export class UsersService {
     });
 
     return this.getMe(userId);
+  }
+
+
+   async updateRole(userId: number, role: Role) {
+    if (!['ADMIN', 'USER'].includes(role)) {
+      throw new BadRequestException('Invalid role');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: { role },
+    });
+
+    return {
+      id: updated.id,
+      name: updated.name,
+      email: updated.email,
+      role: updated.role,
+      createdAt: updated.createdAt,
+    };
   }
 }
 
