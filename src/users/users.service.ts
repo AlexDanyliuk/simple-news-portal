@@ -50,7 +50,6 @@ export class UsersService {
       favorites: user.favorites.map((f) => ({
         id: f.news.id,
         title: f.news.title,
-        status: f.news.status,
       })),
     };
   }

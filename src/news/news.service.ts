@@ -39,35 +39,36 @@ export class NewsService {
   }
 
   async getById(id: number, role: string) {
-    const isAdmin = role === 'ADMIN';
+  const isAdmin = role === 'ADMIN';
 
-    const news = await this.prisma.news.findUnique({
-      where: { id },
-      include: {
-        author: { select: { email: true } },
-        topic: { select: { name: true } }
+  const news = await this.prisma.news.findUnique({
+    where: { id },
+    include: {
+      author: { select: { email: true } },
+      topic:  { select: { name: true } },
+      comments: {
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
+          }
+        }
+      }
+    },
+  });
 
-      },
-    });
+  if (!news) throw new NotFoundException('News not found');
 
-    if (!news) throw new NotFoundException('News not found');
-
-    if (news.status === 'DRAFT' && !isAdmin) {
-      throw new ForbiddenException('You cannot access draft news');
-    }
-
-    return {
-      id: news.id,
-      title: news.title,
-      content: news.content,
-      status: news.status,
-      createdAt: news.createdAt,
-      updatedAt: news.updatedAt,
-      topicId: news.topicId,
-      category: news.topic?.name,
-      author: news.author?.email,
-    };
+  if (news.status === 'DRAFT' && !isAdmin) {
+    throw new ForbiddenException('You cannot access draft news');
   }
+
+  return news;
+}
+
 
   async create(data: { title: string; content: string; topicId: number; authorId: number }) {
     return this.prisma.news.create({

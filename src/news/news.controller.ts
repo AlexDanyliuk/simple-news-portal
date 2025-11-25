@@ -3,8 +3,7 @@ import { NewsService } from './news.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { Role } from '@prisma/client';
-import { read } from 'fs';
+
 import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
 
 
@@ -23,8 +22,8 @@ export class NewsController {
   @UseGuards(OptionalJwtAuthGuard)
   @Get(':id')
   async getById(@Param('id') id: string, @Req() req) {
-    const role = req.user?.role || 'GUEST';
-    return this.newsService.getById(Number(id), role);
+    const role = req.user?.role ?? 'GUEST';
+  return this.newsService.getById(Number(id), role);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

@@ -8,6 +8,7 @@ import { CommentsModule } from './comments/comments.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { TopicsModule } from './topics/topics.module';
 
 
 
@@ -22,7 +23,8 @@ import { NotificationsModule } from './notifications/notifications.module';
     CommentsModule,
     FavoritesModule,
     SubscriptionsModule,
-    NotificationsModule
+    NotificationsModule,
+    TopicsModule
   ],
   providers: [PrismaService],
 })
