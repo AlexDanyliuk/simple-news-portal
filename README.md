@@ -33,7 +33,6 @@
 | Мова                       | TypeScript              |
 | База даних                 | PostgreSQL (Prisma)     |
 | Архітектура                | Modular + Observer      |
-| Тестування                 | Jest                    |
 | API документація           | Swagger                 |
 | Авторизація                | JWT                     |
 
